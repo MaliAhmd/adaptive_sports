@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './Admin.module.css';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     fetchPosts();
@@ -31,6 +33,13 @@ export default function AdminDashboard() {
       }
   };
 
+  const handleLogout = async () => {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/admin/login');
+  };
+
+  const totalViews = posts.reduce((sum, post) => sum + (post.views || 0), 0);
+
   if (loading) return <div className={styles.container}>Loading dashboard...</div>;
 
   return (
@@ -38,6 +47,17 @@ export default function AdminDashboard() {
       <header className={styles.header}>
         <h1 className={styles.title}>Admin Dashboard</h1>
         <div className={styles.user}>
+          <button onClick={handleLogout} style={{
+              background: 'transparent', 
+              color: '#ef4444', 
+              border: '1px solid #ef4444', 
+              padding: '0.5rem 1rem', 
+              borderRadius: '6px',
+              cursor: 'pointer',
+              marginRight: '1rem'
+          }}>
+              Logout
+          </button>
           <Link href="/admin/posts/new" className={styles.badge} style={{background: 'var(--primary)', color: '#000', padding: '0.8rem 1.5rem', textDecoration: 'none', fontSize: '1rem'}}>
              + New Post
           </Link>
@@ -50,10 +70,9 @@ export default function AdminDashboard() {
           <div className={styles.cardLabel}>Total Posts</div>
           <div className={styles.cardValue}>{posts.length}</div>
         </div>
-        {/* Placeholder stats */}
         <div className={styles.card}>
-          <div className={styles.cardLabel}>Views</div>
-          <div className={styles.cardValue}>12.5k</div>
+          <div className={styles.cardLabel}>Total Views</div>
+          <div className={styles.cardValue}>{totalViews}</div>
         </div>
       </div>
 

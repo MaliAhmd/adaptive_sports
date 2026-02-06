@@ -15,7 +15,7 @@ export default function Hero() {
         </p>
         <div className={styles.actions}>
           <Link href="#blog" className={styles.primaryBtn}>Start Reading</Link>
-          <Link href="#about" className={styles.secondaryBtn}>Learn More</Link>
+          <Link href="/about" className={styles.secondaryBtn}>Learn More</Link>
         </div>
       </div>
     </section>

@@ -9,6 +9,12 @@ export async function GET(request, { params }) {
   if (!post) {
     return NextResponse.json({ error: 'Post not found' }, { status: 404 });
   }
+
+  // Increment view count
+  // Note: GET requests should ideally be idempotent, but for simple view tracking this is common.
+  // Alternatively, use a separate POST endpoint. We'll stick to this for simplicity as requested.
+  post.views = (post.views || 0) + 1;
+  saveDb(db);
   
   return NextResponse.json(post);
 }
