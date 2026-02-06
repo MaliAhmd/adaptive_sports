@@ -1,0 +1,49 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "admin",
+      "password": "password123"
+    }
+  ],
+  "posts": [
+    {
+      "id": "1",
+      "title": "The Future of Prosthetics in Competitive Running",
+      "category": "Innovationnn",
+      "date": "Oct 24, 2024",
+      "author": "Dr. Sarah Chen",
+      "excerpt": "How carbon fiber technology is shattering records and redefining human potential in paralympic sports.",
+      "content": "<p>The landscape of competitive running is undergoing a seismic shift, driven not just by human grit but by groundbreaking advancements in prosthetic technology...</p>",
+      "image": "/uploads/1770391104005-Get-Yourself-Going-with-These-Motivational-Wallpapers.jpeg"
+    },
+    {
+      "id": "2",
+      "title": "Mental Resilience: The Hidden Muscle",
+      "category": "Training",
+      "date": "Oct 20, 2024",
+      "author": "Mark Johnson",
+      "excerpt": "Top adaptive athletes share their strategies for overcoming mental barriers and staying focused under pressure.",
+      "content": "<p>Physical strength will get you to the starting line, but it's mental resilience that gets you across the finish...</p>",
+      "image": null
+    },
+    {
+      "id": "1770391213343",
+      "title": "SKDMSKD",
+      "category": "KSDNKSND",
+      "excerpt": "KDSF",
+      "content": "<p>JLNDFLKDSNF</p>",
+      "image": "/uploads/1770391184415-download.gif",
+      "author": "Admin",
+      "date": "Feb 6, 2026"
+    }
+  ],
+  "about": {
+    "mission": "Our mission is simple: to break down barriers.",
+    "stats": {
+      "communities": "50+",
+      "athletes": "2k+",
+      "dedication": "100%"
+    }
+  }
+}
