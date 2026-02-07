@@ -7,23 +7,27 @@ import Footer from '../../components/Footer';
 import Link from 'next/link';
 
 export default function BlogPost() {
-  const { id } = useParams();
+  const params = useParams(); // useParams returns an object, not just id directly in some versions, but destructuring { id } works if params is the object. 
+  // Actually in Next.js 13+ App Router, useParams() returns the params object directly.
+  const { id } = params; 
+  
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-        fetch(`/api/blogs/${id}`)
-            .then(res => {
-                if (!res.ok) throw new Error('Not found');
-                return res.json();
-            })
-            .then(data => {
-                setPost(data);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
-    }
+    // ID might be undefined initially
+    if (!id) return;
+
+    fetch(`/api/blogs/${id}`)
+        .then(res => {
+            if (!res.ok) throw new Error('Not found');
+            return res.json();
+        })
+        .then(data => {
+            setPost(data);
+            setLoading(false);
+        })
+        .catch(() => setLoading(false));
   }, [id]);
 
   if (loading) return <div style={{background: 'var(--background)', minHeight: '100vh', padding: '100px', textAlign: 'center'}}>Loading...</div>;
@@ -57,7 +61,7 @@ export default function BlogPost() {
                 <span>{post.author}</span>
               </div>
               <span>•</span>
-              <span>{post.date}</span>
+              <span>{post.date || new Date(post.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
         </div>

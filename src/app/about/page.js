@@ -1,38 +1,55 @@
 import styles from './About.module.css';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import dbConnect from '@/lib/mongoose';
+import AboutModel from '@/models/About';
 
-export default function About() {
+async function getAboutData() {
+  try {
+    await dbConnect();
+    const about = await AboutModel.findOne({});
+    if (!about) {
+      return {
+        title: 'Empowering Every Athlete',
+        description: 'We believe sport is a universal language that should be accessible to everyone, regardless of physical ability.',
+        images: []
+      };
+    }
+    return JSON.parse(JSON.stringify(about));
+  } catch (error) {
+    console.error(error);
+    return {
+      title: 'About Us',
+      description: 'Error loading content.',
+      images: []
+    };
+  }
+}
+
+export default async function About() {
+  const data = await getAboutData();
+  
   return (
     <main className={styles.container}>
       <Navbar />
       
       <section className={styles.hero}>
-        <h1 className={styles.title}>Empowering Every Athlete</h1>
-        <p className={styles.subtitle}>
-          We believe sport is a universal language that should be accessible to everyone, regardless of physical ability.
-        </p>
+        <h1 className={styles.title}>{data.title}</h1>
+        {/* If description is long, we might want to split it or show a part here */}
       </section>
 
       <div className={styles.section}>
         <div className={styles.grid}>
           <div className={styles.imageContainer}>
-             {/* Using a gradient placeholder instead of repeating the Image component logic for simplicity and speed, 
-                 or a solid color block to simulate an image if Next.js Image isn't desired without config. 
-                 Using a standard img tag with an external placeholder or local asset is also an option.
-                 Here I'll use a styled div acting as an image placeholder with a gradient. */}
-             <div style={{width: '100%', height: '100%', background: 'linear-gradient(45deg, #1e293b, #0f172a)'}}></div>
+             {data.images && data.images[0] ? (
+                 <img src={data.images[0]} alt="About Us" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px'}} />
+             ) : (
+                 <div style={{width: '100%', minHeight: '300px', background: 'linear-gradient(45deg, #1e293b, #0f172a)', borderRadius: '12px'}}></div>
+             )}
           </div>
           <div className={styles.content}>
-            <h2>Our Mission</h2>
-            <p>
-              Founded in 2024, Adaptive Sports has been at the forefront of the inclusive athletics movement. 
-              Our mission is simple: to break down barriers.
-            </p>
-            <p>
-              We provide resources, community support, and cutting-edge technology insights to help paramobile 
-              athletes and adaptive sports enthusiasts reach their peak potential.
-            </p>
+            <h2>Our Story</h2>
+            <div dangerouslySetInnerHTML={{ __html: data.description.replace(/\n/g, '<br/>') }} />
           </div>
         </div>
 

@@ -58,6 +58,9 @@ export default function AdminDashboard() {
           }}>
               Logout
           </button>
+          <Link href="/admin/about" className={styles.badge} style={{background: '#334155', color: '#fff', padding: '0.8rem 1.5rem', textDecoration: 'none', fontSize: '1rem', marginRight: '1rem'}}>
+             Edit About
+          </Link>
           <Link href="/admin/posts/new" className={styles.badge} style={{background: 'var(--primary)', color: '#000', padding: '0.8rem 1.5rem', textDecoration: 'none', fontSize: '1rem'}}>
              + New Post
           </Link>
@@ -90,14 +93,14 @@ export default function AdminDashboard() {
             </thead>
             <tbody>
               {posts.map(post => (
-                <tr key={post.id}>
+                <tr key={post._id || post.id}>
                   <td>{post.title}</td>
                   <td>{post.category}</td>
-                  <td>{post.date}</td>
+                  <td>{post.date || new Date(post.createdAt).toLocaleDateString()}</td>
                   <td>
                     <div style={{display: 'flex', gap: '1rem'}}>
-                        <Link href={`/admin/posts/${post.id}`} className={styles.actionBtn}>Edit</Link>
-                        <span onClick={() => deletePost(post.id)} className={styles.actionBtn} style={{color: 'red'}}>Delete</span>
+                        <Link href={`/admin/posts/${post._id || post.id}`} className={styles.actionBtn}>Edit</Link>
+                        <span onClick={() => deletePost(post._id || post.id)} className={styles.actionBtn} style={{color: 'red'}}>Delete</span>
                     </div>
                   </td>
                 </tr>

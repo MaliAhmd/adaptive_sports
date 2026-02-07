@@ -1,36 +1,45 @@
+
 import { NextResponse } from 'next/server';
-import { getDb, saveDb } from '@/lib/db';
+import dbConnect from '@/lib/mongoose';
+import Blog from '@/models/Blog';
+import { verifyAdmin } from '@/lib/auth-server';
 
 export async function GET() {
-  const db = getDb();
-  return NextResponse.json(db.posts);
+  try {
+    await dbConnect();
+    const blogs = await Blog.find({}).sort({ createdAt: -1 });
+    return NextResponse.json(blogs);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch blogs' }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
-    // In a real app, verify JWT here too or rely on middleware if this route is only called from admin pages
-    // For API routes, usually need to verify manually if not covered by middleware matcher or if used externally.
-    // Since middleware covers /admin, but API is /api, we should protect this if it's for admin actions.
-    // For simplicity in this demo, we'll assume the /api/blogs POST is protected or we add a check.
-    
-    // Simple check (in production use a shared verify helper)
-    // const token = request.cookies.get('token');
-    // if (!token) return NextResponse.json({error: 'Unauthorized'}, {status: 401});
-
-    try {
-        const body = await request.json();
-        const db = getDb();
-        
-        const newPost = {
-            id: Date.now().toString(),
-            ...body,
-            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        };
-        
-        db.posts.push(newPost);
-        saveDb(db);
-        
-        return NextResponse.json(newPost);
-    } catch (e) {
-        return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
+  try {
+    const admin = await verifyAdmin();
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const body = await request.json();
+    await dbConnect();
+
+    // Generate slug from title if not provided
+    const slug = body.slug || body.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+
+    const newBlog = await Blog.create({
+      ...body,
+      slug,
+      author: admin.username, // Record who created it
+    });
+
+    return NextResponse.json(newBlog, { status: 201 });
+  } catch (error) {
+    console.error('Create blog error:', error);
+    // Handle duplicate key error (slug)
+    if (error.code === 11000) {
+       return NextResponse.json({ error: 'Blog post with this title/slug already exists.' }, { status: 400 });
+    }
+    return NextResponse.json({ error: error.message || 'Failed to create blog' }, { status: 500 });
+  }
 }

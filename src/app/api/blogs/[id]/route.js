@@ -1,53 +1,95 @@
+
 import { NextResponse } from 'next/server';
-import { getDb, saveDb } from '@/lib/db';
+import dbConnect from '@/lib/mongoose';
+import Blog from '@/models/Blog';
+import { verifyAdmin } from '@/lib/auth-server';
 
 export async function GET(request, { params }) {
-  const { id } = await params;
-  const db = getDb();
-  const post = db.posts.find(p => p.id === id);
-  
-  if (!post) {
-    return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+  try {
+    await dbConnect();
+    const { id } = await params; 
+    
+    // Attempt to find by ID first, then by slug if valid ID fails or not found
+    let blog = null;
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+         blog = await Blog.findById(id);
+    }
+    
+    if (!blog) {
+        blog = await Blog.findOne({ slug: id });
+    }
+
+    if (!blog) {
+      return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(blog);
+  } catch (error) {
+      console.error(error);
+    return NextResponse.json({ error: 'Failed to fetch blog' }, { status: 500 });
   }
-
-  // Increment view count
-  // Note: GET requests should ideally be idempotent, but for simple view tracking this is common.
-  // Alternatively, use a separate POST endpoint. We'll stick to this for simplicity as requested.
-  post.views = (post.views || 0) + 1;
-  saveDb(db);
-  
-  return NextResponse.json(post);
-}
-
-export async function DELETE(request, { params }) {
-  const { id } = await params;
-  const db = getDb();
-  
-  const newPosts = db.posts.filter(p => p.id !== id);
-  
-  if (newPosts.length === db.posts.length) {
-     return NextResponse.json({ error: 'Post not found' }, { status: 404 });
-  }
-
-  db.posts = newPosts;
-  saveDb(db);
-  
-  return NextResponse.json({ success: true });
 }
 
 export async function PUT(request, { params }) {
+  try {
+    const admin = await verifyAdmin();
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await request.json();
-    const db = getDb();
-    
-    const index = db.posts.findIndex(p => p.id === id);
-    
-    if (index === -1) {
-        return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    await dbConnect();
+
+    let updatedBlog;
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+        updatedBlog = await Blog.findByIdAndUpdate(id, body, {
+            new: true,
+            runValidators: true,
+        });
+    } else {
+        // Find by slug
+         updatedBlog = await Blog.findOneAndUpdate({ slug: id }, body, {
+            new: true,
+            runValidators: true,
+        });
     }
-    
-    db.posts[index] = { ...db.posts[index], ...body };
-    saveDb(db);
-    
-    return NextResponse.json(db.posts[index]);
+
+    if (!updatedBlog) {
+      return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedBlog);
+  } catch (error) {
+    console.error('Update blog error:', error);
+    return NextResponse.json({ error: 'Failed to update blog' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request, { params }) {
+  try {
+    const admin = await verifyAdmin();
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    await dbConnect();
+
+    let deletedBlog;
+     if (id.match(/^[0-9a-fA-F]{24}$/)) {
+        deletedBlog = await Blog.findByIdAndDelete(id);
+     } else {
+        deletedBlog = await Blog.findOneAndDelete({ slug: id });
+     }
+
+    if (!deletedBlog) {
+      return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Blog deleted successfully' });
+  } catch (error) {
+    console.error('Delete blog error:', error);
+    return NextResponse.json({ error: 'Failed to delete blog' }, { status: 500 });
+  }
 }

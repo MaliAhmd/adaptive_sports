@@ -22,7 +22,7 @@ export default function FeaturedPosts() {
       
       <div className={styles.grid}>
         {posts.map(post => (
-          <Link href={`/blog/${post.id}`} key={post.id} className={styles.card}>
+          <Link href={`/blog/${post.slug || post._id || post.id}`} key={post._id || post.id} className={styles.card}>
             <div className={styles.cardImage}>
               {post.image ? (
                   <img src={post.image} alt={post.title} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
@@ -35,7 +35,7 @@ export default function FeaturedPosts() {
               <h3 className={styles.cardTitle}>{post.title}</h3>
               <p className={styles.excerpt}>{post.excerpt}</p>
               <div className={styles.meta}>
-                <span>{post.date}</span>
+                <span>{post.date || new Date(post.createdAt).toLocaleDateString()}</span>
                 <span className={styles.readMore}>Read article &rarr;</span>
               </div>
             </div>
